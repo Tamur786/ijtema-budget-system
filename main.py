@@ -1257,3 +1257,140 @@ def reset_test_data(request: Request):
     db.close()
 
     return RedirectResponse("/", status_code=303)
+@app.get("/files", response_class=HTMLResponse)
+def files_page(request: Request):
+    user = require_staff(request)
+
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    db = SessionLocal()
+
+    vouchers = (
+        db.query(Voucher)
+        .filter(Voucher.status != "entwurf")
+        .order_by(Voucher.created_at.desc())
+        .all()
+    )
+
+    db.close()
+
+    rows = ""
+
+    for v in vouchers:
+        pdf_link = ""
+
+        if v.voucher_pdf:
+            pdf_link = f'<a class="btn" href="/pdf/{v.code}" target="_blank">PDF öffnen</a>'
+        else:
+            pdf_link = "<span class='muted'>Keine PDF</span>"
+
+        rows += f"""
+        <tr>
+            <td>{v.code}</td>
+            <td>{v.name}</td>
+            <td>{v.voucher_type}</td>
+            <td>{v.status}</td>
+            <td>{v.receipt_status}</td>
+            <td>{v.amount:.2f} €</td>
+            <td>{pdf_link}</td>
+        </tr>
+        """
+
+    return HTMLResponse(f"""
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <title>Dateimanager</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                background:#e8edf2;
+                margin:0;
+                padding:30px;
+            }}
+
+            .header {{
+                background:#1b2d42;
+                color:white;
+                padding:24px;
+                border-radius:12px;
+                margin-bottom:20px;
+            }}
+
+            .header a {{
+                color:#7fb3d3;
+                font-weight:bold;
+                text-decoration:none;
+                margin-right:16px;
+            }}
+
+            .card {{
+                background:white;
+                padding:24px;
+                border-radius:12px;
+                border:1px solid #c8d0da;
+            }}
+
+            table {{
+                width:100%;
+                border-collapse:collapse;
+            }}
+
+            th, td {{
+                padding:12px;
+                border-bottom:1px solid #e1e7ef;
+                text-align:left;
+            }}
+
+            th {{
+                background:#f3f6fb;
+            }}
+
+            .btn {{
+                background:#1a5276;
+                color:white;
+                padding:8px 12px;
+                border-radius:8px;
+                text-decoration:none;
+                font-weight:bold;
+            }}
+
+            .muted {{
+                color:#777;
+            }}
+        </style>
+    </head>
+    <body>
+
+    <div class="header">
+        <h1>Dateimanager</h1>
+        <p>Alle erstellten Voucher- und Advance-PDFs</p>
+        <a href="/">Dashboard</a>
+        <a href="/vouchers">Alle Voucher</a>
+        <a href="/advances">Advances</a>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Typ</th>
+                    <th>Status</th>
+                    <th>Belegstatus</th>
+                    <th>Betrag</th>
+                    <th>Datei</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows if rows else "<tr><td colspan='7'>Keine Dateien vorhanden.</td></tr>"}
+            </tbody>
+        </table>
+    </div>
+
+    </body>
+    </html>
+    """)
