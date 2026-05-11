@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Nazim-e-Ala Prüfung</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #e8edf2; margin: 0; padding: 30px; }
+        .header { background: #1b2d42; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .header a { color: #7fb3d3; font-weight: bold; text-decoration: none; }
+        .card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #c8d0da; margin-bottom: 16px; }
+        .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+        .label { color: #666; font-size: 13px; }
+        .value { font-size: 17px; font-weight: bold; }
+        .btn { padding: 10px 14px; border-radius: 8px; color: white; font-weight: bold; text-decoration: none; margin-right: 8px; display: inline-block; }
+        .approve { background: #1e8449; }
+        .reject { background: #c0392b; }
+        .empty { font-size: 20px; font-weight: bold; color: #1e8449; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Nazim-e-Ala Prüfung</h1>
+    <p>Offene Voucher zur Genehmigung oder Ablehnung.</p>
+    <a href="/">← Zurück zum Dashboard</a>
+</div>
+
+{% if vouchers|length == 0 %}
+<div class="card">
+    <div class="empty">Keine offenen Voucher zur Prüfung ✅</div>
+</div>
+{% endif %}
+
+{% for v in vouchers %}
+<div class="card">
+    <div class="row">
+        <div>
+            <div class="label">ID</div>
+            <div class="value">#{{ v.id }}</div>
+        </div>
+        <div>
+            <div class="label">Antragsteller</div>
+            <div class="value">{{ v.name }}</div>
+        </div>
+        <div>
+            <div class="label">Abteilung</div>
+            <div class="value">{{ v.department }}</div>
+        </div>
+        <div>
+            <div class="label">Zweck</div>
+            <div class="value">{{ v.purpose }}</div>
+        </div>
+        <div>
+            <div class="label">Betrag</div>
+            <div class="value">{{ v.amount }} €</div>
+        </div>
+    </div>
+
+    <br>
+
+    <a class="btn approve" href="/approve/{{ v.id }}">Genehmigen ✅</a>
+    <a class="btn reject" href="/reject/{{ v.id }}">Ablehnen ❌</a>
+</div>
+{% endfor %}
+
+</body>
+</html>

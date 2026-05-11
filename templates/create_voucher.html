@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Voucher erstellen</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #e8edf2;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .header {
+            background: #1b2d42;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .header a {
+            color: #7fb3d3;
+            font-weight: bold;
+            text-decoration: none;
+            margin-right: 16px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #c8d0da;
+            max-width: 1100px;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #b0bbc8;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 18px;
+            background: #1a5276;
+            color: white;
+            border: 0;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .danger {
+            background: #c0392b;
+        }
+
+        .small-btn {
+            padding: 8px 12px;
+            margin-top: 8px;
+        }
+
+        .muted {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .section-title {
+            color: #1b2d42;
+            margin-top: 0;
+        }
+
+        #fileList {
+            margin-top: 10px;
+            background: #eef5fa;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        #analysisResult {
+            margin-top: 16px;
+            background: #f0f8ff;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        canvas {
+            border: 2px solid #b0bbc8;
+            border-radius: 8px;
+            background: white;
+            width: 100%;
+            max-width: 600px;
+            height: 160px;
+            touch-action: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>Voucher erstellen</h1>
+
+    <p>
+        Formular ausfüllen, Rechnungen analysieren,
+        Voucher-PDF erzeugen
+    </p>
+
+    <a href="/">← Dashboard</a>
+    <a href="/track">Voucher-Status prüfen</a>
+</div>
+
+<form
+    method="post"
+    action="/create/finalize"
+    enctype="multipart/form-data"
+    onsubmit="saveSignatures()"
+>
+
+<div class="card">
+
+    <h2 class="section-title">
+        1. Rechnungen hochladen
+    </h2>
+
+    <p class="muted">
+        Du kannst mehrere PDFs auswählen.
+        Danach kannst du sie analysieren lassen.
+    </p>
+
+    <label>
+        Rechnungen / Belege
+    </label>
+
+    <input
+        type="file"
+        name="invoices"
+        id="invoices"
+        accept="application/pdf"
+        multiple
+        onchange="showFiles()"
+    >
+
+    <div id="fileList">
+        Noch keine Datei ausgewählt.
+    </div>
+
+    <button
+        type="button"
+        onclick="analyzeInvoices()"
+    >
+        Rechnung analysieren
+    </button>
+
+    <div id="analysisResult"></div>
+
+</div>
+
+<div class="card">
+
+    <h2 class="section-title">
+        2. Allgemeine Angaben
+    </h2>
+
+    <div class="grid">
+
+        <div>
+            <label>Bereich</label>
+
+            <select name="scope">
+                <option value="">
+                    Bitte auswählen
+                </option>
+
+                <option value="National">
+                    National
+                </option>
+
+                <option value="Regional">
+                    Regional
+                </option>
+
+                <option value="Majlis">
+                    Majlis
+                </option>
+            </select>
+        </div>
+
+        <div>
+            <label>Datum</label>
+
+            <input
+                type="text"
+                name="datum"
+                placeholder="z.B. 11.05.2026"
+            >
+        </div>
+
+        <div>
+            <label>
+                Name Amila-Mitglied / Qaid
+            </label>
+
+            <input type="text" name="name_amila">
+        </div>
+
+        <div>
+            <label>
+                ID Amila-Mitglied / Qaid
+            </label>
+
+            <input type="text" name="id_amila">
+        </div>
+
+        <div>
+            <label>
+                Name Antragsteller
+            </label>
+
+            <input
+                type="text"
+                name="name_antrag"
+                required
+            >
+        </div>
+
+        <div>
+            <label>
+                ID Antragsteller
+            </label>
+
+            <input type="text" name="id_antrag">
+        </div>
+
+        <div>
+            <label>
+                Telefon Antragsteller
+            </label>
+
+            <input type="text" name="tel_antrag">
+        </div>
+
+        <div>
+            <label>
+                Abteilung / Region / Majlis
+            </label>
+
+            <input type="text" name="abteilung">
+        </div>
+
+        <div>
+            <label>
+                Zweck der Ausgaben
+            </label>
+
+            <input type="text" name="zweck">
+        </div>
+
+        <div>
+            <label>
+                Teilnehmerzahl
+            </label>
+
+            <input type="text" name="teilnehmer">
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h2 class="section-title">
+        3. Advance
+    </h2>
+
+    <div class="grid">
+
+        <div>
+            <label>
+                Advance erhalten?
+            </label>
+
+            <select name="advance_erhalten">
+                <option value="">
+                    Bitte auswählen
+                </option>
+
+                <option value="Ja">
+                    Ja
+                </option>
+
+                <option value="Nein">
+                    Nein
+                </option>
+            </select>
+        </div>
+
+        <div>
+            <label>
+                Advance Betrag
+            </label>
+
+            <input
+                type="text"
+                name="advance_betrag"
+                placeholder="z.B. 1.000,00"
+            >
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h2 class="section-title">
+        4. Ausgaben
+    </h2>
+
+    <p class="muted">
+        TOTAL wird automatisch berechnet.
+    </p>
+
+    <div class="grid">
+
+        <div>
+            <label>1 Hospitality</label>
+            <input class="amount-field" type="text" name="pos1_betrag">
+        </div>
+
+        <div>
+            <label>6 Stationary</label>
+            <input class="amount-field" type="text" name="pos6_betrag">
+        </div>
+
+        <div>
+            <label>2 Travelling</label>
+            <input class="amount-field" type="text" name="pos2_betrag">
+        </div>
+
+        <div>
+            <label>7 Rent</label>
+            <input class="amount-field" type="text" name="pos7_betrag">
+        </div>
+
+        <div>
+            <label>3 Printing & Photocopy</label>
+            <input class="amount-field" type="text" name="pos3_betrag">
+        </div>
+
+        <div>
+            <label>8 Postage</label>
+            <input class="amount-field" type="text" name="pos8_betrag">
+        </div>
+
+        <div>
+            <label>4 Maintenance</label>
+            <input class="amount-field" type="text" name="pos4_betrag">
+        </div>
+
+        <div>
+            <label>9 Telephone</label>
+            <input class="amount-field" type="text" name="pos9_betrag">
+        </div>
+
+        <div>
+            <label>5 Assets</label>
+            <input class="amount-field" type="text" name="pos5_betrag">
+        </div>
+
+        <div>
+            <label>10 Sonstiges</label>
+            <input class="amount-field" type="text" name="pos10_betrag">
+        </div>
+
+        <div>
+            <label>TOTAL</label>
+
+            <input
+                type="text"
+                name="total"
+                id="total"
+                required
+            >
+<br>
+
+<button
+    type="button"
+    class="small-btn"
+    onclick="takeSplitAsTotal()"
+>
+    TOTAL aus Kategorien übernehmen
+</button>
+
+<div
+    id="splitCheck"
+    class="muted"
+    style="margin-top:10px;"
+>
+    Nachweisbetrag / TOTAL: 0,00 €<br>
+    Aufgeteilt: 0,00 €<br>
+    Differenz: 0,00 €
+</div>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h2 class="section-title">
+        5. Bankverbindung
+    </h2>
+
+    <div class="grid">
+
+        <div>
+            <label>
+                Name Kontoinhaber / Lieferant
+            </label>
+
+            <input type="text" name="supplier">
+        </div>
+
+        <div>
+            <label>
+                Verwendungszweck
+            </label>
+
+            <input type="text" name="verwendungszweck">
+        </div>
+
+        <div>
+            <label>IBAN</label>
+
+            <input type="text" name="iban">
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h2 class="section-title">
+        6. Unterschriften
+    </h2>
+
+    <label>
+        Unterschrift Antragsteller
+    </label>
+
+    <canvas id="sigApplicant"></canvas>
+
+    <input
+        type="hidden"
+        name="signature_applicant"
+        id="signature_applicant"
+    >
+
+    <br>
+
+    <button
+        type="button"
+        class="danger small-btn"
+        onclick="clearSignature('sigApplicant')"
+    >
+        Löschen
+    </button>
+
+    <br><br>
+
+    <label>
+        Unterschrift National Amila Mitglied / Qaid
+    </label>
+
+    <canvas id="sigAmila"></canvas>
+
+    <input
+        type="hidden"
+        name="signature_amila"
+        id="signature_amila"
+    >
+
+    <br>
+
+    <button
+        type="button"
+        class="danger small-btn"
+        onclick="clearSignature('sigAmila')"
+    >
+        Löschen
+    </button>
+
+</div>
+
+<div class="card">
+
+    <h2 class="section-title">
+        7. Bestätigung
+    </h2>
+
+    <label>
+        <input
+            type="checkbox"
+            name="confirm"
+            required
+            style="width:auto;"
+        >
+<div id="splitCheck" class="muted" style="margin-top:10px;">
+    Aufgeteilt: 0,00 €<br>
+    Noch offen / Differenz: 0,00 €
+</div>
+        Ich bestätige, dass die Angaben korrekt sind.
+    </label>
+
+    <button type="submit">
+        Voucher-PDF erstellen und einreichen
+    </button>
+
+</div>
+
+</form>
+
+<script>
+
+function showFiles() {
+
+    const input = document.getElementById("invoices");
+    const list = document.getElementById("fileList");
+
+    if (!input.files.length) {
+
+        list.innerHTML =
+            "Noch keine Datei ausgewählt.";
+
+        return;
+    }
+
+    let html =
+        "<b>Ausgewählte Dateien:</b><br>";
+
+    for (let i = 0; i < input.files.length; i++) {
+
+        html +=
+            (i + 1)
+            + ". "
+            + input.files[i].name
+            + "<br>";
+    }
+
+    list.innerHTML = html;
+}
+
+
+async function analyzeInvoices() {
+
+    const input =
+        document.getElementById("invoices");
+
+    const resultBox =
+        document.getElementById("analysisResult");
+
+    if (!input.files.length) {
+
+        alert(
+            "Bitte zuerst Rechnungen auswählen."
+        );
+
+        return;
+    }
+
+    resultBox.innerHTML =
+        "⏳ Rechnungen werden analysiert...";
+
+    const formData = new FormData();
+
+    for (let i = 0; i < input.files.length; i++) {
+
+        formData.append(
+            "invoices",
+            input.files[i]
+        );
+    }
+
+    try {
+
+        const response = await fetch(
+            "/api/analyze-invoices",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.total) {
+            document.getElementById("total").value =
+                data.total;
+        }
+
+        if (data.supplier) {
+            document.querySelector(
+                'input[name="supplier"]'
+            ).value = data.supplier;
+        }
+
+        if (data.iban) {
+            document.querySelector(
+                'input[name="iban"]'
+            ).value = data.iban;
+        }
+
+        if (data.date) {
+            document.querySelector(
+                'input[name="datum"]'
+            ).value = data.date;
+        }
+
+        if (data.verwendungszweck) {
+            document.querySelector(
+                'input[name="verwendungszweck"]'
+            ).value = data.verwendungszweck;
+        }
+
+        let html =
+            "<br><b>Analyse abgeschlossen:</b><br>";
+
+        data.results.forEach((r, index) => {
+
+            html +=
+                (index + 1)
+                + ". "
+                + r.file
+                + " → ";
+
+            if (r.error) {
+
+                html +=
+                    "Fehler: "
+                    + r.error
+                    + "<br>";
+
+            } else {
+
+                html +=
+                    "Betrag: "
+                    + (r.amount || "?")
+                    + " €, Lieferant: "
+                    + (r.supplier || "?")
+                    + "<br>";
+            }
+        });
+
+        resultBox.innerHTML = html;
+
+    } catch (error) {
+
+        resultBox.innerHTML =
+            "❌ Fehler bei der Analyse: "
+            + error;
+    }
+}
+
+
+function parseEuro(value) {
+
+    if (!value) return 0;
+
+    value = value
+        .replaceAll(".", "")
+        .replace(",", ".");
+
+    const num = parseFloat(value);
+
+    return isNaN(num) ? 0 : num;
+}
+
+
+function formatEuro(num) {
+
+    return num.toLocaleString(
+        "de-DE",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+}
+
+
+function calcTotal() {
+
+    let splitTotal = 0;
+
+    document
+        .querySelectorAll(".amount-field")
+        .forEach(input => {
+
+            splitTotal += parseEuro(input.value);
+        });
+
+    const totalField =
+        document.getElementById("total");
+
+    const totalValue =
+        parseEuro(totalField.value);
+
+    const diff =
+        totalValue - splitTotal;
+
+    const box =
+        document.getElementById("splitCheck");
+
+    if (box) {
+
+        box.innerHTML =
+            "<b>Nachweisbetrag / TOTAL:</b> "
+            + formatEuro(totalValue)
+            + " €<br>"
+            +
+            "<b>Aufgeteilt:</b> "
+            + formatEuro(splitTotal)
+            + " €<br>"
+            +
+            "<b>Differenz:</b> "
+            + formatEuro(diff)
+            + " €";
+    }
+}
+document
+    .querySelectorAll(".amount-field")
+    .forEach(input => {
+
+        input.addEventListener(
+            "input",
+            calcTotal
+        );
+    });
+
+
+const pads = {};
+
+
+function setupSignature(canvasId) {
+
+    const canvas =
+        document.getElementById(canvasId);
+
+    const ctx =
+        canvas.getContext("2d");
+
+    let drawing = false;
+
+    function resizeCanvas() {
+
+        const rect =
+            canvas.getBoundingClientRect();
+
+        canvas.width = rect.width;
+        canvas.height = 160;
+
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+    }
+
+    resizeCanvas();
+
+    function getPos(e) {
+
+        const rect =
+            canvas.getBoundingClientRect();
+
+        if (e.touches && e.touches.length > 0) {
+
+            return {
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
+            };
+        }
+
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    }
+
+    function startDraw(e) {
+
+        e.preventDefault();
+
+        drawing = true;
+
+        const pos = getPos(e);
+
+        ctx.beginPath();
+
+        ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+
+        if (!drawing) return;
+
+        e.preventDefault();
+
+        const pos = getPos(e);
+
+        ctx.lineTo(pos.x, pos.y);
+
+        ctx.stroke();
+    }
+
+    function endDraw(e) {
+
+        e.preventDefault();
+
+        drawing = false;
+    }
+
+    canvas.addEventListener(
+        "mousedown",
+        startDraw
+    );
+
+    canvas.addEventListener(
+        "mousemove",
+        draw
+    );
+
+    canvas.addEventListener(
+        "mouseup",
+        endDraw
+    );
+
+    canvas.addEventListener(
+        "mouseleave",
+        endDraw
+    );
+
+    canvas.addEventListener(
+        "touchstart",
+        startDraw
+    );
+
+    canvas.addEventListener(
+        "touchmove",
+        draw
+    );
+
+    canvas.addEventListener(
+        "touchend",
+        endDraw
+    );
+
+    pads[canvasId] = {
+        canvas,
+        ctx
+    };
+}
+
+
+function clearSignature(canvasId) {
+
+    const pad = pads[canvasId];
+
+    pad.ctx.clearRect(
+        0,
+        0,
+        pad.canvas.width,
+        pad.canvas.height
+    );
+}
+
+
+function saveSignatures() {
+
+    document.getElementById(
+        "signature_applicant"
+    ).value =
+        document.getElementById(
+            "sigApplicant"
+        ).toDataURL("image/png");
+
+    document.getElementById(
+        "signature_amila"
+    ).value =
+        document.getElementById(
+            "sigAmila"
+        ).toDataURL("image/png");
+}
+
+function takeSplitAsTotal() {
+
+    let splitTotal = 0;
+
+    document
+        .querySelectorAll(".amount-field")
+        .forEach(input => {
+
+            splitTotal += parseEuro(input.value);
+        });
+
+    document.getElementById("total").value =
+        formatEuro(splitTotal);
+
+    calcTotal();
+}
+setupSignature("sigApplicant");
+setupSignature("sigAmila");
+
+</script>
+
+</body>
+</html>

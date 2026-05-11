@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Voucher erstellen</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #e8edf2;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .header {
+            background: #1b2d42;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #c8d0da;
+            max-width: 700px;
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #b0bbc8;
+            border-radius: 8px;
+        }
+
+        button {
+            margin-top: 22px;
+            padding: 12px 18px;
+            background: #1a5276;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        a {
+            color: #1a5276;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>Voucher erstellen</h1>
+    <p>Neuen Voucher einreichen</p>
+</div>
+
+<div class="card">
+    <form method="post" action="/create">
+
+        <label>Name Antragsteller</label>
+        <input type="text" name="name" required>
+
+        <label>Abteilung / Bereich</label>
+        <input type="text" name="department" required>
+
+        <label>Zweck der Ausgaben</label>
+        <input type="text" name="purpose" required>
+
+        <label>Betrag (€)</label>
+        <input type="number" step="0.01" name="amount" required>
+
+        <label>Lieferant / Kontoinhaber</label>
+        <input type="text" name="supplier">
+
+        <button type="submit">Voucher einreichen</button>
+    </form>
+</div>
+
+<br>
+<a href="/">← Zurück zum Dashboard</a>
+
+</body>
+</html>

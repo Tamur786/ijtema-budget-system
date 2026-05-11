@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Advance abrechnen</title>
+
+    <style>
+
+        body{
+            font-family:Arial,sans-serif;
+            background:#e8edf2;
+            margin:0;
+            padding:30px;
+        }
+
+        .header{
+            background:#1b2d42;
+            color:white;
+            padding:24px;
+            border-radius:12px;
+            margin-bottom:20px;
+        }
+
+        .header a{
+            color:#7fb3d3;
+            text-decoration:none;
+            font-weight:bold;
+        }
+
+        .card{
+            background:white;
+            padding:24px;
+            border-radius:12px;
+            border:1px solid #c8d0da;
+            max-width:850px;
+            margin:auto;
+        }
+
+        h1,h2{
+            margin-top:0;
+        }
+
+        label{
+            display:block;
+            margin-top:16px;
+            font-weight:bold;
+        }
+
+        input{
+            width:100%;
+            padding:12px;
+            margin-top:6px;
+            border:1px solid #b0bbc8;
+            border-radius:8px;
+            box-sizing:border-box;
+        }
+
+        button{
+            margin-top:24px;
+            padding:12px 18px;
+            background:#1a5276;
+            color:white;
+            border:0;
+            border-radius:8px;
+            font-weight:bold;
+            cursor:pointer;
+        }
+
+        .muted{
+            color:#666;
+            font-size:14px;
+        }
+
+        .error{
+            background:#f8d7da;
+            color:#842029;
+            padding:12px;
+            border-radius:8px;
+            margin-bottom:20px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Advance abrechnen</h1>
+
+    <p>
+        Rechnungen und Quittungen zu einem bereits ausgezahlten Advance nachreichen.
+    </p>
+
+    <a href="/">← Dashboard</a>
+</div>
+
+<div class="card">
+
+    {% if error %}
+        <div class="error">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <h2>Advance suchen</h2>
+
+    <form
+        method="post"
+        action="/settle-advance"
+        enctype="multipart/form-data"
+    >
+
+        <label>Advance / Voucher Code</label>
+
+        <input
+            type="text"
+            name="code"
+            placeholder="z.B. V-2026-0003"
+            required
+        >
+
+        <label>Name Antragsteller</label>
+
+        <input
+            type="text"
+            name="name"
+            placeholder="Name wie beim Advance"
+            required
+        >
+
+        <label>Rechnung(en) hochladen</label>
+
+        <input
+            type="file"
+            name="receipts"
+            multiple
+            accept=".pdf,image/*"
+            required
+        >
+
+        <p class="muted">
+            Mehrere Rechnungen können gleichzeitig hochgeladen werden.
+        </p>
+
+        <button type="submit">
+            Rechnungen nachreichen
+        </button>
+
+    </form>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Alle Voucher</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #e8edf2; margin: 0; padding: 30px; }
+        .header { background: #1b2d42; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .header a { color: #7fb3d3; font-weight: bold; text-decoration: none; margin-right: 16px; }
+        .card { background: white; padding: 18px; border-radius: 12px; border: 1px solid #c8d0da; margin-bottom: 12px; }
+        .row { display: grid; grid-template-columns: 80px 1fr 1fr 1fr 120px 140px; gap: 12px; align-items: center; }
+        .label { color: #666; font-size: 12px; }
+        .value { font-weight: bold; }
+        .status { font-weight: bold; }
+        .eingereicht { color: #b9770e; }
+        .genehmigt { color: #1a5276; }
+        .abgelehnt { color: #c0392b; }
+        .ausgezahlt { color: #1e8449; }
+        .btn { padding: 8px 12px; border-radius: 8px; color: white; text-decoration: none; font-weight: bold; display: inline-block; }
+        .pay { background: #1e8449; }
+        .empty { font-size: 20px; font-weight: bold; color: #1e8449; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Alle Voucher</h1>
+    <a href="/">← Dashboard</a>
+    <a href="/create">+ Neuer Voucher</a>
+    <a href="/review">Prüfung</a>
+    <a href="/history">Historie</a>
+</div>
+
+{% if vouchers|length == 0 %}
+<div class="card">
+    <div class="empty">Noch keine Voucher vorhanden.</div>
+</div>
+{% endif %}
+
+{% for v in vouchers %}
+<div class="card">
+    <div class="row">
+        <div>
+            <div class="label">ID</div>
+            <div class="value">#{{ v.id }}</div>
+        </div>
+
+        <div>
+            <div class="label">Antragsteller</div>
+            <div class="value">{{ v.name }}</div>
+        </div>
+
+        <div>
+            <div class="label">Abteilung</div>
+            <div class="value">{{ v.department }}</div>
+        </div>
+
+        <div>
+            <div class="label">Zweck</div>
+            <div class="value">{{ v.purpose }}</div>
+        </div>
+
+        <div>
+            <div class="label">Betrag</div>
+            <div class="value">{{ v.amount }} €</div>
+        </div>
+
+        <div>
+            <div class="label">Status</div>
+            <div class="status {{ v.status }}">{{ v.status }}</div>
+        </div>
+    </div>
+
+    {% if v.status == "genehmigt" %}
+    <br>
+    <a class="btn pay" href="/pay/{{ v.id }}">Als ausgezahlt markieren 💶</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+</body>
+</html>

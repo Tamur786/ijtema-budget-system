@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Historie</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #e8edf2; margin: 0; padding: 30px; }
+        .header { background: #1b2d42; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .header a { color: #7fb3d3; font-weight: bold; text-decoration: none; }
+        .card { background: white; padding: 18px; border-radius: 12px; border: 1px solid #c8d0da; margin-bottom: 12px; }
+        .action { font-size: 18px; font-weight: bold; color: #1a5276; }
+        .text { margin-top: 6px; }
+        .meta { color: #666; font-size: 12px; margin-top: 8px; }
+        .empty { font-size: 20px; font-weight: bold; color: #1e8449; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Historie</h1>
+    <p>Alle Aktionen im Voucher-System.</p>
+    <a href="/">← Zurück zum Dashboard</a>
+</div>
+
+{% if logs|length == 0 %}
+<div class="card">
+    <div class="empty">Noch keine Historie vorhanden.</div>
+</div>
+{% endif %}
+
+{% for log in logs %}
+<div class="card">
+    <div class="action">{{ log.action }}</div>
+    <div class="text">{{ log.text }}</div>
+    <div class="meta">
+        {% if log.voucher_id %}Voucher #{{ log.voucher_id }} | {% endif %}
+        {% if log.person %}Person: {{ log.person }} | {% endif %}
+        Zeitpunkt: {{ log.created_at }}
+    </div>
+</div>
+{% endfor %}
+
+</body>
+</html>

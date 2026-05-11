@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Voucher eingereicht</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#e8edf2; margin:0; padding:30px; }
+        .card { background:white; padding:28px; border-radius:12px; border:1px solid #c8d0da; max-width:700px; margin:auto; }
+        h1 { color:#1b2d42; }
+        .code { font-size:34px; font-weight:bold; color:#1a5276; padding:12px; background:#eef5fa; border-radius:10px; display:inline-block; }
+        a { color:#1a5276; font-weight:bold; text-decoration:none; margin-right:12px; }
+        .note { color:#666; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Voucher erfolgreich eingereicht ✅</h1>
+
+    {% if voucher %}
+        <p>Bitte diesen Voucher-Code speichern:</p>
+        <div class="code">{{ voucher.code }}</div>
+
+        <p>Name: <b>{{ voucher.name }}</b></p>
+        <p>Status: <b>{{ voucher.status }}</b></p>
+
+        <p class="note">
+            Mit diesem Code und deinem Namen kannst du später den Status prüfen.
+        </p>
+    {% else %}
+        <p>Voucher wurde eingereicht.</p>
+    {% endif %}
+
+    <br><br>
+    <a href="/track">Status prüfen</a>
+    <a href="/create">Neuen Voucher erstellen</a>
+    <a href="/">Dashboard</a>
+</div>
+
+</body>
+</html>

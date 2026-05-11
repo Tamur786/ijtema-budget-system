@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Voucher Daten prüfen</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#e8edf2; margin:0; padding:30px; }
+        .header { background:#1b2d42; color:white; padding:20px; border-radius:12px; margin-bottom:20px; }
+        .header a { color:#7fb3d3; font-weight:bold; text-decoration:none; }
+        .card { background:white; padding:24px; border-radius:12px; border:1px solid #c8d0da; max-width:1000px; margin-bottom:20px; }
+        .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+        label { display:block; margin-top:12px; font-weight:bold; }
+        input, select { width:100%; padding:10px; margin-top:6px; border:1px solid #b0bbc8; border-radius:8px; box-sizing:border-box; }
+        button { margin-top:20px; padding:12px 18px; background:#1a5276; color:white; border:0; border-radius:8px; font-weight:bold; cursor:pointer; }
+        .muted { color:#666; font-size:14px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Voucher Daten prüfen</h1>
+    <p>Die Rechnung wurde analysiert. Bitte alles prüfen und ergänzen.</p>
+    <a href="/create">← Neue Rechnung hochladen</a>
+</div>
+
+<form method="post" action="/create/finalize">
+
+<div class="card">
+    <h2>Allgemeine Angaben</h2>
+
+    <div class="grid">
+        <div>
+            <label>Bereich</label>
+            <select name="scope">
+                <option value="">Bitte auswählen</option>
+                <option value="National">National</option>
+                <option value="Regional">Regional</option>
+                <option value="Majlis">Majlis</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Datum</label>
+            <input type="text" name="datum" value="{{ analysis.date }}">
+        </div>
+
+        <div>
+            <label>Name Amila-Mitglied / Qaid</label>
+            <input type="text" name="name_amila">
+        </div>
+
+        <div>
+            <label>ID Amila-Mitglied / Qaid</label>
+            <input type="text" name="id_amila">
+        </div>
+
+        <div>
+            <label>Name Antragsteller</label>
+            <input type="text" name="name_antrag" required>
+        </div>
+
+        <div>
+            <label>ID Antragsteller</label>
+            <input type="text" name="id_antrag">
+        </div>
+
+        <div>
+            <label>Telefon Antragsteller</label>
+            <input type="text" name="tel_antrag">
+        </div>
+
+        <div>
+            <label>Abteilung / Region / Majlis</label>
+            <input type="text" name="abteilung">
+        </div>
+
+        <div>
+            <label>Zweck der Ausgaben</label>
+            <input type="text" name="zweck">
+        </div>
+
+        <div>
+            <label>Teilnehmerzahl</label>
+            <input type="text" name="teilnehmer">
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Ausgaben</h2>
+    <p class="muted">Der erkannte Gesamtbetrag wurde vorläufig bei TOTAL eingetragen. Bitte die passende Kategorie manuell setzen.</p>
+
+    <div class="grid">
+        <div>
+            <label>1 Hospitality</label>
+            <input type="text" name="pos1_betrag">
+        </div>
+        <div>
+            <label>6 Stationary</label>
+            <input type="text" name="pos6_betrag">
+        </div>
+        <div>
+            <label>2 Travelling</label>
+            <input type="text" name="pos2_betrag">
+        </div>
+        <div>
+            <label>7 Rent</label>
+            <input type="text" name="pos7_betrag">
+        </div>
+        <div>
+            <label>3 Printing & Photocopy</label>
+            <input type="text" name="pos3_betrag">
+        </div>
+        <div>
+            <label>8 Postage</label>
+            <input type="text" name="pos8_betrag">
+        </div>
+        <div>
+            <label>4 Maintenance</label>
+            <input type="text" name="pos4_betrag">
+        </div>
+        <div>
+            <label>9 Telephone</label>
+            <input type="text" name="pos9_betrag">
+        </div>
+        <div>
+            <label>5 Assets</label>
+            <input type="text" name="pos5_betrag">
+        </div>
+        <div>
+            <label>10 Sonstiges</label>
+            <input type="text" name="pos10_betrag">
+        </div>
+
+        <div>
+            <label>TOTAL</label>
+            <input type="text" name="total" value="{{ analysis.amount }}">
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Bankverbindung</h2>
+
+    <div class="grid">
+        <div>
+            <label>Name Kontoinhaber / Lieferant</label>
+            <input type="text" name="supplier" value="{{ analysis.supplier }}">
+        </div>
+
+        <div>
+            <label>Verwendungszweck</label>
+            <input type="text" name="verwendungszweck" value="{% if analysis.invoice_number %}Rechnung {{ analysis.invoice_number }}{% endif %}">
+        </div>
+
+        <div>
+            <label>IBAN</label>
+            <input type="text" name="iban" value="{{ analysis.iban }}">
+        </div>
+    </div>
+</div>
+
+<button type="submit">Voucher-PDF erstellen</button>
+
+</form>
+
+</body>
+</html>

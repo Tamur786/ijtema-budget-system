@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+jinja2
+python-multipart
+sqlalchemy
+pypdf
+reportlab
+pillow
+pytesseract
+opencv-python
+numpy
+pdf2image
+psycopg2-binary

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Ijtema Budget Dashboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #132238;
+        }
+
+        .topbar {
+            background: linear-gradient(135deg, #082b4c, #123d66);
+            color: white;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .brand p {
+            margin: 6px 0 0;
+            color: #cfe4f7;
+        }
+
+        .staff-badge {
+            background: #0f766e;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: calc(100vh - 96px);
+        }
+
+        .sidebar {
+            background: white;
+            border-right: 1px solid #d8e0ea;
+            padding: 24px;
+        }
+
+        .side-title {
+            font-size: 13px;
+            color: #6b7a90;
+            text-transform: uppercase;
+            margin: 20px 0 10px;
+            font-weight: bold;
+        }
+
+        .nav a {
+            display: block;
+            padding: 13px 14px;
+            margin-bottom: 8px;
+            text-decoration: none;
+            color: #1b2d42;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .nav a:hover {
+            background: #edf5ff;
+            color: #0b5cad;
+        }
+
+        .main {
+            padding: 28px;
+        }
+
+        .welcome {
+            background: white;
+            border: 1px solid #d8e0ea;
+            border-radius: 16px;
+            padding: 26px;
+            margin-bottom: 24px;
+        }
+
+        .welcome h2 {
+            margin: 0 0 8px;
+            font-size: 24px;
+        }
+
+        .welcome p {
+            margin: 0;
+            color: #617086;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #d8e0ea;
+            border-radius: 16px;
+            padding: 22px;
+        }
+
+        .card .label {
+            color: #617086;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .card .value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .green { color: #15803d; }
+        .blue { color: #1d4ed8; }
+        .orange { color: #c76a00; }
+        .purple { color: #6d28d9; }
+
+        .quick {
+            background: white;
+            border: 1px solid #d8e0ea;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .quick h2 {
+            margin-top: 0;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .action {
+            display: block;
+            text-decoration: none;
+            padding: 22px;
+            border-radius: 14px;
+            border: 1px solid #d8e0ea;
+            color: #132238;
+            background: #fbfdff;
+        }
+
+        .action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        .action b {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .action span {
+            color: #617086;
+            font-size: 14px;
+        }
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .list {
+            background: white;
+            border: 1px solid #d8e0ea;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .list h2 {
+            margin-top: 0;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid #edf1f5;
+        }
+
+        .row:last-child {
+            border-bottom: 0;
+        }
+
+        .badge {
+            background: #e0ecff;
+            color: #1d4ed8;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            color: #7a8798;
+            padding: 22px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 1000px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: 0;
+                border-bottom: 1px solid #d8e0ea;
+            }
+
+            .cards,
+            .actions,
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div class="brand">
+        <h1>Ijtema Budget System</h1>
+        <p>Nationale Ijtema Verwaltung</p>
+    </div>
+
+    {% if user %}
+        <div class="staff-badge">Staff Modus: {{ user.username }}</div>
+    {% endif %}
+</div>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="side-title">Übersicht</div>
+
+        <div class="nav">
+            <a href="/">Dashboard</a>
+        </div>
+
+        <div class="side-title">Öffentlich</div>
+
+        <div class="nav">
+            <a href="/create">+ Voucher erstellen</a>
+            <a href="/create-advance">+ Advance beantragen</a>
+            <a href="/settle-advance">Rechnung nachreichen</a>
+            <a href="/track">Voucher-Status prüfen</a>
+        </div>
+
+        {% if user %}
+            <div class="side-title">Staff Bereich</div>
+
+            <div class="nav">
+                <a href="/review">Zur Prüfung</a>
+                <a href="/vouchers">Alle Voucher</a>
+                <a href="/advances">Advances</a>
+                <a href="/history">Historie</a>
+                <a href="/logout">Logout</a>
+            </div>
+        {% else %}
+            <div class="side-title">Staff</div>
+
+            <div class="nav">
+                <a href="/login">Staff Login</a>
+            </div>
+        {% endif %}
+    </aside>
+
+    <main class="main">
+
+        <section class="welcome">
+            <h2>Willkommen im Ijtema Budget Dashboard</h2>
+            <p>Hier findest du Budget, Voucher, Advances und Nachreichungen übersichtlich an einem Ort.</p>
+        </section>
+
+        <section class="cards">
+            <div class="card">
+                <div class="label">Gesamtbudget</div>
+                <div class="value green">{{ "%.2f"|format(budget.total) }} €</div>
+            </div>
+
+            <div class="card">
+                <div class="label">Noch verfügbar</div>
+                <div class="value blue">{{ "%.2f"|format(remaining) }} €</div>
+            </div>
+
+            <div class="card">
+                <div class="label">In Prüfung</div>
+                <div class="value orange">{{ "%.2f"|format(pending) }} €</div>
+            </div>
+
+            <div class="card">
+                <div class="label">Ausgezahlt</div>
+                <div class="value purple">{{ "%.2f"|format(paid) }} €</div>
+            </div>
+        </section>
+
+        <section class="quick">
+            <h2>Schnellzugriff</h2>
+
+            <div class="actions">
+                <a class="action" href="/create">
+                    <b>Voucher erstellen</b>
+                    <span>Neue Ausgabe mit Rechnung einreichen</span>
+                </a>
+
+                <a class="action" href="/create-advance">
+                    <b>Advance beantragen</b>
+                    <span>Vorschuss ohne Rechnung beantragen</span>
+                </a>
+
+                <a class="action" href="/settle-advance">
+                    <b>Rechnung nachreichen</b>
+                    <span>Advance später abrechnen</span>
+                </a>
+
+                <a class="action" href="/track">
+                    <b>Status prüfen</b>
+                    <span>Voucher oder Advance nachverfolgen</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="bottom-grid">
+            <div class="list">
+                <h2>Öffentliche Aktionen</h2>
+
+                <div class="row">
+                    <span>Voucher erstellen</span>
+                    <a href="/create">Öffnen</a>
+                </div>
+
+                <div class="row">
+                    <span>Advance beantragen</span>
+                    <a href="/create-advance">Öffnen</a>
+                </div>
+
+                <div class="row">
+                    <span>Rechnung nachreichen</span>
+                    <a href="/settle-advance">Öffnen</a>
+                </div>
+            </div>
+
+            <div class="list">
+                <h2>Systemstatus</h2>
+
+                <div class="row">
+                    <span>Voucher insgesamt</span>
+                    <span class="badge">{{ vouchers_count }}</span>
+                </div>
+
+                <div class="row">
+                    <span>Budgetstatus</span>
+                    <span class="badge">Live</span>
+                </div>
+
+                <div class="row">
+                    <span>Zugriff</span>
+                    {% if user %}
+                        <span class="badge">Staff</span>
+                    {% else %}
+                        <span class="badge">Öffentlich</span>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+</div>
+
+<div class="footer">
+    © 2026 Ijtema Budget System
+</div>
+
+</body>
+</html>
