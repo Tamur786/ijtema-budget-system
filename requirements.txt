@@ -11,3 +11,4 @@ opencv-python
 numpy
 pdf2image
 psycopg2-binary
+openpyxl

@@ -12,6 +12,10 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from core.ocr import analyze_invoice
 from core.pdf_generator import fill_voucher, merge_pdfs, create_advance_pdf
 
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
+
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -1510,3 +1514,168 @@ def files_page(
     </body>
     </html>
     """)
+@app.get("/export-excel")
+def export_excel(request: Request):
+    user = require_staff(request)
+
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    db = SessionLocal()
+
+    vouchers = (
+        db.query(Voucher)
+        .filter(Voucher.status != "entwurf")
+        .order_by(Voucher.created_at.desc())
+        .all()
+    )
+
+    logs = (
+        db.query(History)
+        .order_by(History.created_at.desc())
+        .all()
+    )
+
+    wb = Workbook()
+
+    ws = wb.active
+    ws.title = "Alle Voucher"
+
+    headers = [
+        "Code",
+        "Name",
+        "Typ",
+        "Status",
+        "Belegstatus",
+        "Zweck",
+        "Abteilung",
+        "Betrag",
+        "Advance Betrag",
+        "Lieferant",
+        "Erstellt am",
+        "Genehmigt von",
+        "Ausgezahlt von",
+        "PDF Pfad",
+    ]
+
+    ws.append(headers)
+
+    for v in vouchers:
+        ws.append([
+            v.code,
+            v.name,
+            v.voucher_type,
+            v.status,
+            v.receipt_status,
+            v.purpose,
+            v.department,
+            v.amount,
+            v.advance_amount,
+            v.supplier,
+            v.created_at.strftime("%d.%m.%Y %H:%M") if v.created_at else "",
+            v.approved_by or "",
+            v.paid_by or "",
+            v.voucher_pdf or "",
+        ])
+
+    adv = wb.create_sheet("Advances")
+
+    adv_headers = [
+        "Code",
+        "Name",
+        "Zweck",
+        "Advance Betrag",
+        "Status",
+        "Belegstatus",
+        "Rückgabe/Nachzahlung",
+        "PDF Pfad",
+    ]
+
+    adv.append(adv_headers)
+
+    for v in vouchers:
+        if v.voucher_type == "advance":
+            balance = ""
+
+            if v.receipt_status and ":" in v.receipt_status:
+                balance = v.receipt_status.replace(":", " ")
+
+            adv.append([
+                v.code,
+                v.name,
+                v.purpose,
+                v.advance_amount,
+                v.status,
+                v.receipt_status,
+                balance,
+                v.voucher_pdf or "",
+            ])
+
+    hist = wb.create_sheet("Historie")
+
+    hist_headers = [
+        "Datum",
+        "Voucher ID",
+        "Aktion",
+        "Beschreibung",
+        "Person",
+    ]
+
+    hist.append(hist_headers)
+
+    for h in logs:
+        hist.append([
+            h.created_at.strftime("%d.%m.%Y %H:%M") if h.created_at else "",
+            h.voucher_id,
+            h.action,
+            h.text,
+            h.person or "",
+        ])
+
+    summary = wb.create_sheet("Übersicht", 0)
+
+    total_amount = sum(v.amount or 0 for v in vouchers)
+    total_advance = sum(v.advance_amount or 0 for v in vouchers if v.voucher_type == "advance")
+    open_advances = len([v for v in vouchers if v.voucher_type == "advance" and v.status in ["rechnung_ausstehend", "abrechnung_offen"]])
+
+    summary.append(["Ijtema Budget System Export"])
+    summary.append([])
+    summary.append(["Anzahl Voucher", len(vouchers)])
+    summary.append(["Gesamtsumme Voucher", total_amount])
+    summary.append(["Advance Summe", total_advance])
+    summary.append(["Offene Advances", open_advances])
+    summary.append(["Export erstellt am", datetime.utcnow().strftime("%d.%m.%Y %H:%M")])
+
+    for sheet in wb.worksheets:
+        for cell in sheet[1]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill("solid", fgColor="1B2D42")
+            cell.alignment = Alignment(horizontal="center")
+
+        for col in sheet.columns:
+            max_length = 0
+            column = col[0].column
+
+            for cell in col:
+                try:
+                    value = str(cell.value) if cell.value is not None else ""
+                    max_length = max(max_length, len(value))
+                except Exception:
+                    pass
+
+            width = min(max_length + 3, 45)
+            sheet.column_dimensions[get_column_letter(column)].width = width
+
+    os.makedirs("exports", exist_ok=True)
+
+    export_path = "exports/ijtema_budget_export.xlsx"
+
+    wb.save(export_path)
+
+    db.close()
+
+    return FileResponse(
+        export_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="ijtema_budget_export.xlsx"
+    )
