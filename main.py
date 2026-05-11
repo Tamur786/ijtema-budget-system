@@ -1242,3 +1242,18 @@ def vouchers_page(request: Request):
         "vouchers.html",
         {"vouchers": vouchers, "user": user}
     )
+@app.get("/reset-test-data")
+def reset_test_data(request: Request):
+    db = SessionLocal()
+
+    db.query(History).delete()
+    db.query(Voucher).delete()
+    db.query(Budget).delete()
+
+    budget = Budget(total=50000)
+    db.add(budget)
+
+    db.commit()
+    db.close()
+
+    return RedirectResponse("/", status_code=303)
