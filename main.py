@@ -1299,10 +1299,13 @@ def files_page(
 
     for v in vouchers:
         pdf_link = (
-            f'<a class="btn" href="/pdf/{v.code}" target="_blank">PDF öffnen</a>'
-            if v.voucher_pdf
-            else "<span class='muted'>Keine PDF</span>"
-        )
+    f'''
+    <a class="btn" href="/pdf/{v.code}" target="_blank">Öffnen</a>
+    <a class="btn download" href="/download-pdf/{v.code}">Download</a>
+    '''
+    if v.voucher_pdf
+    else "<span class='muted'>Keine PDF</span>"
+)
 
         rows += f"""
         <tr>
@@ -1310,7 +1313,7 @@ def files_page(
             <td>{v.name}</td>
             <td>{v.purpose or "-"}</td>
             <td><span class="badge type">{v.voucher_type}</span></td>
-            <td><span class="badge status">{v.status}</span></td>
+            <td><span class="badge status-{v.status}">{v.status}</span></td>
             <td>{v.receipt_status or "-"}</td>
             <td>{v.amount:.2f} €</td>
             <td>{pdf_link}</td>
@@ -1411,7 +1414,19 @@ def files_page(
                 text-decoration:none;
                 font-weight:bold;
             }}
+            .download {
+                background:#15803d;
+                margin-left:6px;
+            }
 
+            .status-eingereicht { background:#fff7ed; color:#c2410c; }
+            .status-genehmigt { background:#dbeafe; color:#1d4ed8; }
+            .status-ausgezahlt { background:#dcfce7; color:#15803d; }
+            .status-rechnung_ausstehend { background:#fee2e2; color:#b91c1c; }
+            .status-abrechnung_offen { background:#fef9c3; color:#a16207; }                
+            .status-abgeschlossen { background:#d1fae5; color:#047857; }
+            .status-abgelehnt { background:#fee2e2; color:#991b1b; }
+                
             .badge {{
                 padding:5px 10px;
                 border-radius:999px;
@@ -1678,4 +1693,27 @@ def export_excel(request: Request):
         export_path,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         filename="ijtema_budget_export.xlsx"
+    )
+@app.get("/download-pdf/{code}")
+def download_pdf(request: Request, code: str):
+    user = require_staff(request)
+
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    db = SessionLocal()
+
+    voucher = db.query(Voucher).filter(
+        Voucher.code == code
+    ).first()
+
+    db.close()
+
+    if not voucher or not voucher.voucher_pdf or not os.path.exists(voucher.voucher_pdf):
+        return HTMLResponse("<h1>PDF nicht gefunden</h1>", status_code=404)
+
+    return FileResponse(
+        voucher.voucher_pdf,
+        media_type="application/pdf",
+        filename=os.path.basename(voucher.voucher_pdf)
     )
