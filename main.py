@@ -104,7 +104,7 @@ def get_budget(db):
     budget = db.query(Budget).first()
 
     if not budget:
-        budget = Budget(total=50000)
+        budget = Budget(total=453867)
         db.add(budget)
         db.commit()
         db.refresh(budget)
