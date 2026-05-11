@@ -1258,7 +1258,12 @@ def reset_test_data(request: Request):
 
     return RedirectResponse("/", status_code=303)
 @app.get("/files", response_class=HTMLResponse)
-def files_page(request: Request):
+def files_page(
+    request: Request,
+    q: str = "",
+    typ: str = "",
+    status: str = ""
+):
     user = require_staff(request)
 
     if not user:
@@ -1266,32 +1271,43 @@ def files_page(request: Request):
 
     db = SessionLocal()
 
-    vouchers = (
-        db.query(Voucher)
-        .filter(Voucher.status != "entwurf")
-        .order_by(Voucher.created_at.desc())
-        .all()
-    )
+    query = db.query(Voucher).filter(Voucher.status != "entwurf")
+
+    if q:
+        search = f"%{q}%"
+        query = query.filter(
+            (Voucher.code.like(search)) |
+            (Voucher.name.like(search)) |
+            (Voucher.purpose.like(search))
+        )
+
+    if typ:
+        query = query.filter(Voucher.voucher_type == typ)
+
+    if status:
+        query = query.filter(Voucher.status == status)
+
+    vouchers = query.order_by(Voucher.created_at.desc()).all()
 
     db.close()
 
     rows = ""
 
     for v in vouchers:
-        pdf_link = ""
-
-        if v.voucher_pdf:
-            pdf_link = f'<a class="btn" href="/pdf/{v.code}" target="_blank">PDF öffnen</a>'
-        else:
-            pdf_link = "<span class='muted'>Keine PDF</span>"
+        pdf_link = (
+            f'<a class="btn" href="/pdf/{v.code}" target="_blank">PDF öffnen</a>'
+            if v.voucher_pdf
+            else "<span class='muted'>Keine PDF</span>"
+        )
 
         rows += f"""
         <tr>
-            <td>{v.code}</td>
+            <td><b>{v.code}</b></td>
             <td>{v.name}</td>
-            <td>{v.voucher_type}</td>
-            <td>{v.status}</td>
-            <td>{v.receipt_status}</td>
+            <td>{v.purpose or "-"}</td>
+            <td><span class="badge type">{v.voucher_type}</span></td>
+            <td><span class="badge status">{v.status}</span></td>
+            <td>{v.receipt_status or "-"}</td>
             <td>{v.amount:.2f} €</td>
             <td>{pdf_link}</td>
         </tr>
@@ -1306,16 +1322,17 @@ def files_page(request: Request):
         <style>
             body {{
                 font-family: Arial, sans-serif;
-                background:#e8edf2;
+                background:#f3f6fb;
                 margin:0;
                 padding:30px;
+                color:#132238;
             }}
 
             .header {{
                 background:#1b2d42;
                 color:white;
                 padding:24px;
-                border-radius:12px;
+                border-radius:14px;
                 margin-bottom:20px;
             }}
 
@@ -1329,23 +1346,57 @@ def files_page(request: Request):
             .card {{
                 background:white;
                 padding:24px;
-                border-radius:12px;
-                border:1px solid #c8d0da;
+                border-radius:14px;
+                border:1px solid #d8e0ea;
+                margin-bottom:20px;
+            }}
+
+            .filters {{
+                display:grid;
+                grid-template-columns:2fr 1fr 1fr auto;
+                gap:12px;
+                align-items:end;
+            }}
+
+            input, select {{
+                width:100%;
+                padding:11px;
+                border:1px solid #b0bbc8;
+                border-radius:8px;
+            }}
+
+            label {{
+                font-weight:bold;
+                display:block;
+                margin-bottom:6px;
+            }}
+
+            button {{
+                padding:12px 18px;
+                background:#1a5276;
+                color:white;
+                border:0;
+                border-radius:8px;
+                font-weight:bold;
+                cursor:pointer;
             }}
 
             table {{
                 width:100%;
                 border-collapse:collapse;
+                margin-top:10px;
             }}
 
             th, td {{
-                padding:12px;
+                padding:13px;
                 border-bottom:1px solid #e1e7ef;
                 text-align:left;
+                font-size:14px;
             }}
 
             th {{
                 background:#f3f6fb;
+                color:#1b2d42;
             }}
 
             .btn {{
@@ -1357,39 +1408,104 @@ def files_page(request: Request):
                 font-weight:bold;
             }}
 
+            .badge {{
+                padding:5px 10px;
+                border-radius:999px;
+                font-weight:bold;
+                font-size:12px;
+                display:inline-block;
+            }}
+
+            .type {{
+                background:#e0ecff;
+                color:#1d4ed8;
+            }}
+
+            .status {{
+                background:#ecfdf5;
+                color:#047857;
+            }}
+
             .muted {{
                 color:#777;
             }}
+
+            @media(max-width:900px) {{
+                .filters {{
+                    grid-template-columns:1fr;
+                }}
+
+                table {{
+                    font-size:12px;
+                }}
+            }}
         </style>
     </head>
+
     <body>
 
-    <div class="header">
-        <h1>Dateimanager</h1>
-        <p>Alle erstellten Voucher- und Advance-PDFs</p>
-        <a href="/">Dashboard</a>
-        <a href="/vouchers">Alle Voucher</a>
-        <a href="/advances">Advances</a>
-    </div>
+        <div class="header">
+            <h1>Dateimanager</h1>
+            <p>Alle Voucher, Advances und PDFs zentral durchsuchen.</p>
+            <a href="/">Dashboard</a>
+            <a href="/vouchers">Alle Voucher</a>
+            <a href="/advances">Advances</a>
+            <a href="/history">Historie</a>
+        </div>
 
-    <div class="card">
-        <table>
-            <thead>
-                <tr>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Typ</th>
-                    <th>Status</th>
-                    <th>Belegstatus</th>
-                    <th>Betrag</th>
-                    <th>Datei</th>
-                </tr>
-            </thead>
-            <tbody>
-                {rows if rows else "<tr><td colspan='7'>Keine Dateien vorhanden.</td></tr>"}
-            </tbody>
-        </table>
-    </div>
+        <div class="card">
+            <form method="get" action="/files" class="filters">
+                <div>
+                    <label>Suchen</label>
+                    <input type="text" name="q" value="{q}" placeholder="Code, Name oder Zweck">
+                </div>
+
+                <div>
+                    <label>Typ</label>
+                    <select name="typ">
+                        <option value="">Alle</option>
+                        <option value="normal" {"selected" if typ == "normal" else ""}>Normal</option>
+                        <option value="advance" {"selected" if typ == "advance" else ""}>Advance</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="">Alle</option>
+                        <option value="eingereicht" {"selected" if status == "eingereicht" else ""}>Eingereicht</option>
+                        <option value="genehmigt" {"selected" if status == "genehmigt" else ""}>Genehmigt</option>
+                        <option value="ausgezahlt" {"selected" if status == "ausgezahlt" else ""}>Ausgezahlt</option>
+                        <option value="rechnung_ausstehend" {"selected" if status == "rechnung_ausstehend" else ""}>Rechnung ausstehend</option>
+                        <option value="abrechnung_offen" {"selected" if status == "abrechnung_offen" else ""}>Abrechnung offen</option>
+                        <option value="abgeschlossen" {"selected" if status == "abgeschlossen" else ""}>Abgeschlossen</option>
+                        <option value="abgelehnt" {"selected" if status == "abgelehnt" else ""}>Abgelehnt</option>
+                    </select>
+                </div>
+
+                <button type="submit">Filtern</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Zweck</th>
+                        <th>Typ</th>
+                        <th>Status</th>
+                        <th>Belegstatus</th>
+                        <th>Betrag</th>
+                        <th>Datei</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows if rows else "<tr><td colspan='8'>Keine Dateien gefunden.</td></tr>"}
+                </tbody>
+            </table>
+        </div>
 
     </body>
     </html>
