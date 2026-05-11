@@ -1,0 +1,4 @@
+data/budget.db
+uploads/
+__pycache__/
+venv/
